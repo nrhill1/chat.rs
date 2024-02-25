@@ -1,9 +1,25 @@
+use std::collections::HashSet;
+
+#[allow(dead_code)]
+
 use axum::{http::Method, routing::get};
 use socketioxide::{
     extract::SocketRef,
     SocketIo,
 };
 use tower_http::cors::{Any, CorsLayer};
+
+
+struct AppState {}
+
+struct RoomState {
+    users: HashSet<String>,
+}
+
+struct Message {
+    user_id: String,
+    msg: String,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -7,9 +7,9 @@ export default function Home() {
 
   const socket = io('ws://0.0.0.0:8080/');
 
-
   const [message, setMessage] = useState('');
   const [socketId, setSocketId] = useState('');
+
   useEffect(() => {
     socket.connect();
 
@@ -29,15 +29,15 @@ export default function Home() {
   return (
     <div className="grid container p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg items-center space-x-4 mt-2">
       {/* <p>Hello user{socketId}!</p> */}
-      <p className="">{message}</p>
+      <p className="justify-center">{message}</p>
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        className="bg-pink-500 hover:bg-rose-700 ease-in-out duration-300 text-white font-bold py-2 px-4 rounded mb-2"
         onClick={() => socket.send('message', 'Hello')}
       >
         Send
       </button>
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        className="bg-pink-500 hover:bg-rose-700 ease-in-out duration-300 text-white font-bold py-2 px-4 rounded"
         onClick={() => setMessage('')}
       >
           Clear
