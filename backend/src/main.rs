@@ -1,24 +1,43 @@
 use std::collections::HashSet;
 
 #[allow(dead_code)]
+#[allow(unused_imports)]
 
 use axum::{http::Method, routing::get};
+use chrono;
 use socketioxide::{
-    extract::SocketRef,
+    extract::{Data, SocketRef},
     SocketIo,
 };
 use tower_http::cors::{Any, CorsLayer};
+use uuid::{Uuid};
 
 
-struct AppState {}
-
-struct RoomState {
-    users: HashSet<String>,
+struct AppState {
+    room_count: u64,
+    active_rooms: Vec<Room>,
 }
 
+impl AppState {}
+
+struct Room {
+    id: Uuid,
+    users: HashSet<u64>,
+}
+
+impl Room {}
+
 struct Message {
-    user_id: String,
-    msg: String,
+    room_id: Uuid,
+    time: chrono::DateTime<chrono::Utc>,
+    user_id: u64,
+    txt: String,
+}
+
+impl Message {}
+
+struct User {
+    id: Uuid
 }
 
 #[tokio::main]
@@ -49,3 +68,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+

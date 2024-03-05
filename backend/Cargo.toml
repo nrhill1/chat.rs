@@ -10,6 +10,8 @@ edition = "2021"
 tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
 futures-util = "0.3.3"
+# -- ID
+uuid = { version = "1.7.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
 # -- Json
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -21,6 +23,8 @@ tower-http = { version = "0.5", features = ["fs", "cors"] }
 tower-cookies = "0.10"
 # -- Sockets
 socketioxide = "0.10.2"
+# -- Time
+chrono = { version = "0.4", features = ["serde"] }
 # -- Tracing
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
