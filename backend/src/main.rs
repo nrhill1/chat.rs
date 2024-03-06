@@ -58,7 +58,7 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
 
     socket.on("auth", |socket: SocketRef, Data::<AuthEvent>(data)| {
         info!("Socket.IO auth: {:?}", data);
-        socket.emit("authed", "authenticated").ok();
+        socket.emit("authed", data.token).ok();
     });
 
 
@@ -68,9 +68,9 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
 
     socket.on(
         "message",
-        |socket: SocketRef, Data::<Value>(data), Bin(bin)| {
-            info!("Received event: {:?} {:?}", data, bin);
-            socket.bin(bin).emit("message-back", data).ok();
+        |socket: SocketRef, Data::<Value>(data)| {
+            info!("Received event: {:?}", data);
+            socket.emit("message-back", data).ok();
         },
     );
 

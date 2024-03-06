@@ -58,7 +58,7 @@ export default function Home() {
       socket?.emit('auth', { token: '123' })
     });
 
-    socket?.on('auth', (data: string) => {
+    socket?.on('authed', (data: string) => {
       console.log('auth success token: ', data);
 
     });
