@@ -2,13 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-
-
-
+import Message from "./components/Message";
 
 export default function Home() {
-
-
   const [messages, setMessages] = useState<string[]>([]);  const [message, setMessage] = useState<string>('');
   const [socketId, setSocketId] = useState<string | undefined>(undefined);
   const [currentRoom, setCurrentRoom] = useState<number>(1);
@@ -18,13 +14,11 @@ export default function Home() {
   const onceRef = useRef(false);
 
 
-
-
   function renderMessages(messages: string[]) {
     return (
-      <div className="rounded border-white min-w-2 min-h-2 mb-1">
+      <div className="rounded border-pink min-w-2 min-h-2 mb-1">
         {messages.map((message, index) => (
-          <p key={index}>{message}</p>
+          <Message key={index} text={message} />
         ))}
       </div>
     );
@@ -45,7 +39,7 @@ export default function Home() {
 
     const socket = io("ws://0.0.0.0:8080");
     setSocket(socket);
-    setSocketId(socket.id);
+
 
     socket?.on("connect", () => {
       console.log("Connected to socket server");
@@ -56,6 +50,8 @@ export default function Home() {
       socket?.emit("join", currentRoom);
 
       socket?.emit('auth', { token: '123' })
+      console.log("socket ID: ", socket.id);
+      setSocketId(socket.id);
     });
 
     socket?.on('authed', (data: string) => {
@@ -89,6 +85,7 @@ export default function Home() {
           onChange={(e) =>{setMessage(e.target.value)}}
           placeholder="Type a message"
         >
+
 
         </input>
         <button
