@@ -1,20 +1,70 @@
+use std::sync::{Arc, Mutex};
+
 //* main.rs
 use axum::{http::Method, routing::get};
 use serde_json::Value;
 use socketioxide::{
-    extract::{Bin, Data, SocketRef},
-    SocketIo,
+    extract::{Bin, Data, SocketRef}, socket::DisconnectReason, SocketIo
 };
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
+struct AppState {
+    rooms: Vec<Room>,
+}
+
+struct Room {
+    id: String,
+    name: String,
+    users: Vec<String>,
+    messages: Arc<Mutex<MessageStore>>,
+}
+
+impl Room {
+    fn new(id: String, name: String) -> Self {
+        Self {
+            id,
+            name,
+            users: Vec::new(),
+            messages: Arc::new(Mutex::new(MessageStore { messages: Vec::new() })),
+        }
+    }
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct AuthEvent {
+    token: String,
+}
+
+struct Message {
+    user: String,
+    message: String,
+}
+
+struct MessageStore {
+    messages: Vec<Message>,
+}
 
 
 fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
 
-    socket.emit("auth", data).ok();
+
+    socket.on("clear", |socket: SocketRef| {
+        info!("Socket.IO cleared: {:?}", socket.id);
+        socket.emit("cleared", "Cleared").ok();
+    });
+
+    socket.on("auth", |socket: SocketRef, Data::<AuthEvent>(data)| {
+        info!("Socket.IO auth: {:?}", data);
+        socket.emit("authed", "authenticated").ok();
+    });
+
+
+    socket.on_disconnect(|socket: SocketRef, reason: DisconnectReason| async move {
+        info!("Socket {} on ns {} disconnected, reason: {:?}", socket.id, socket.ns(), reason);
+    });
 
     socket.on(
         "message",
