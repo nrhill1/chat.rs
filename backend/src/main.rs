@@ -1,56 +1,36 @@
-use std::collections::HashSet;
-
-#[allow(dead_code)]
-#[allow(unused_imports)]
-
+//* main.rs
 use axum::{http::Method, routing::get};
-use chrono;
+use serde_json::Value;
 use socketioxide::{
-    extract::{Data, SocketRef},
+    extract::{Bin, Data, SocketRef},
     SocketIo,
 };
 use tower_http::cors::{Any, CorsLayer};
-use uuid::{Uuid};
+use tracing::info;
+use tracing_subscriber::FmtSubscriber;
 
 
-struct AppState {
-    room_count: u64,
-    active_rooms: Vec<Room>,
-}
 
-impl AppState {}
+fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
+    info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
 
-struct Room {
-    id: Uuid,
-    users: HashSet<u64>,
-}
+    socket.emit("auth", data).ok();
 
-impl Room {}
+    socket.on(
+        "message",
+        |socket: SocketRef, Data::<Value>(data), Bin(bin)| {
+            info!("Received event: {:?} {:?}", data, bin);
+            socket.bin(bin).emit("message-back", data).ok();
+        },
+    );
 
-struct Message {
-    room_id: Uuid,
-    time: chrono::DateTime<chrono::Utc>,
-    user_id: u64,
-    txt: String,
-}
-
-impl Message {}
-
-struct User {
-    id: Uuid
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (layer, io) = SocketIo::new_layer();
+    tracing::subscriber::set_global_default(FmtSubscriber::default())?;
 
-    // Register a handler for the default namespace
-    io.ns("/", |s: SocketRef| {
-        // For each "message" event received, send a "message-back" event with the "Hello World!" event
-        s.on("message", |s: SocketRef| {
-            s.emit("message-back", "Hello World!").ok();
-        });
-    });
+    let (layer, io) = SocketIo::new_layer();
 
     let cors = CorsLayer::new()
         // allow `GET` and `POST` when accessing the resource
@@ -58,14 +38,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // allow requests from any origin
         .allow_origin(Any);
 
+    io.ns("/", on_connect);
+
     let app = axum::Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .layer(layer)
         .layer(cors);
+
+    info!("Starting server");
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
 }
-
