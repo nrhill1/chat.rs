@@ -24,6 +24,10 @@ export default function Home() {
     );
   }
 
+  function handleTyping() {
+    socket?.emit("typing", name);
+  }
+
   useEffect(() => {
     setMessages([]);
     socket?.emit("join");
@@ -40,7 +44,6 @@ export default function Home() {
     const socket = io("ws://0.0.0.0:8080");
     setSocket(socket);
 
-
     socket?.on("connect", () => {
       console.log("Connected to socket server");
       setName(`anon-${socket.id}`);
@@ -56,7 +59,6 @@ export default function Home() {
 
     socket?.on('authed', (data: string) => {
       console.log('auth success token: ', data);
-
     });
 
     socket?.on("message-back", (msg: string) => {
@@ -71,21 +73,29 @@ export default function Home() {
       });
       setMessages(messages);
     });
-  }, []);
+
+    socket?.on("typing", (user: string) => {
+      if (user === name) {
+        return;
+      }
+      console.log(name + " is typing");
+    });
+
+  }, [socket]);
 
 
 
   return (
 
       <div className="bg-white grid container p-6 mx-auto rounded-xl max-w-120 shadow-lg items-center justify-center space-x-4 mt-2 ml-2 mr-2s">
-        <p>Hello user{socketId}!</p>
+        <p className="text-center">Hello anon-{socketId}!</p>
         <div className="bg-gray-300 container py-2 px-4 max-w-120 rounded-sm text-center mb-2">{renderMessages(messages)}</div>
         <input
           className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded mb-2"
           onChange={(e) =>{setMessage(e.target.value)}}
+          onFocus = {(e) => {handleTyping()}}
           placeholder="Type a message"
         >
-
 
         </input>
         <button

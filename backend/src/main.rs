@@ -67,6 +67,11 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         socket.emit("authed", data.token).ok();
     });
 
+    socket.on("typing", |socket: SocketRef, Data::<String>(data)| {
+        info!("Socket.IO typing: {:?}", data);
+        socket.emit("typing", data).ok();
+    });
+
     socket.on_disconnect(|socket: SocketRef, reason: DisconnectReason| async move {
         info!(
             "Socket {} on ns {} disconnected, reason: {:?}",
