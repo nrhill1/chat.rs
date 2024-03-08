@@ -1,10 +1,16 @@
+//* main.rs
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
+
 use std::sync::{Arc, Mutex};
 
-//* main.rs
 use axum::{http::Method, routing::get};
 use serde_json::Value;
 use socketioxide::{
-    extract::{Bin, Data, SocketRef}, socket::DisconnectReason, SocketIo
+    extract::{Data, SocketRef},
+    socket::DisconnectReason,
+    SocketIo,
 };
 use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
@@ -27,7 +33,9 @@ impl Room {
             id,
             name,
             users: Vec::new(),
-            messages: Arc::new(Mutex::new(MessageStore { messages: Vec::new() })),
+            messages: Arc::new(Mutex::new(MessageStore {
+                messages: Vec::new(),
+            })),
         }
     }
 }
@@ -46,10 +54,8 @@ struct MessageStore {
     messages: Vec<Message>,
 }
 
-
 fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
-
 
     socket.on("clear", |socket: SocketRef| {
         info!("Socket.IO cleared: {:?}", socket.id);
@@ -61,19 +67,19 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         socket.emit("authed", data.token).ok();
     });
 
-
     socket.on_disconnect(|socket: SocketRef, reason: DisconnectReason| async move {
-        info!("Socket {} on ns {} disconnected, reason: {:?}", socket.id, socket.ns(), reason);
+        info!(
+            "Socket {} on ns {} disconnected, reason: {:?}",
+            socket.id,
+            socket.ns(),
+            reason
+        );
     });
 
-    socket.on(
-        "message",
-        |socket: SocketRef, Data::<Value>(data)| {
-            info!("Received event: {:?}", data);
-            socket.emit("message-back", data).ok();
-        },
-    );
-
+    socket.on("message", |socket: SocketRef, Data::<Value>(data)| {
+        info!("Received event: {:?}", data);
+        socket.emit("message-back", data).ok();
+    });
 }
 
 #[tokio::main]
