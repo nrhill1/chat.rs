@@ -1,11 +1,15 @@
 //* main.rs
+#![feature(async_closure)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
-
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::VecDeque,
+    sync::{Arc, Mutex},
+};
 
 use axum::{http::Method, routing::get};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use socketioxide::{
     extract::{Data, SocketRef},
@@ -17,25 +21,23 @@ use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
 struct AppState {
-    rooms: Vec<Room>,
+    rooms: VecDeque<Room>,
 }
 
 struct Room {
-    id: String,
+    id: u32,
     name: String,
-    users: Vec<String>,
-    messages: Arc<Mutex<MessageStore>>,
+    users: Arc<Mutex<Vec<String>>>,
+    messages: Arc<Mutex<VecDeque<Message>>>,
 }
 
 impl Room {
-    fn new(id: String, name: String) -> Self {
+    fn new(id: u32, name: String) -> Self {
         Self {
             id,
             name,
-            users: Vec::new(),
-            messages: Arc::new(Mutex::new(MessageStore {
-                messages: Vec::new(),
-            })),
+            users: Arc::new(Mutex::new(Vec::new())),
+            messages: Arc::new(Mutex::new(VecDeque::new())),
         }
     }
 }
@@ -45,17 +47,23 @@ struct AuthEvent {
     token: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 struct Message {
-    user: String,
     message: String,
-}
-
-struct MessageStore {
-    messages: Vec<Message>,
+    user: String,
 }
 
 fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
+
+    let room = Room::new(1, String::from("this_room"));
+
+    socket.on("join", async move|socket: SocketRef| {
+        info!("Socket.IO joined: {:?}", socket.id);
+        room.users.clone().lock().unwrap().push(socket.id.to_string());
+        info!("Users in room: {:?}", room.users.clone().lock().unwrap());
+        socket.emit("joined", "Joined").ok();
+    });
 
     socket.on("clear", |socket: SocketRef| {
         info!("Socket.IO cleared: {:?}", socket.id);
@@ -67,9 +75,9 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         socket.emit("authed", data.token).ok();
     });
 
-    socket.on("typing", |socket: SocketRef, Data::<String>(data)| {
-        info!("Socket.IO typing: {:?}", data);
-        socket.emit("typing", data).ok();
+    socket.on("typing", |socket: SocketRef, Data::<String>(user)| {
+        info!("Socket.IO typing: {:?}", user);
+        socket.emit("typing", user).ok();
     });
 
     socket.on_disconnect(|socket: SocketRef, reason: DisconnectReason| async move {
@@ -81,9 +89,9 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         );
     });
 
-    socket.on("message", |socket: SocketRef, Data::<Value>(data)| {
-        info!("Received event: {:?}", data);
-        socket.emit("message-back", data).ok();
+    socket.on("message", |socket: SocketRef, Data::<Message>(msg)| {
+        info!("Received event: {:?}", msg);
+        socket.emit("message-back", msg).ok();
     });
 }
 

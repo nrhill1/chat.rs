@@ -9,7 +9,7 @@ export default function Home() {
   const [socketId, setSocketId] = useState<string | undefined>(undefined);
   const [currentRoom, setCurrentRoom] = useState<number>(1);
   const [connected, setConnected] = useState<boolean>(false);
-  const [name, setName] = useState<string>('anon');
+  const [user, setUser] = useState<string>('anon');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [userTyping, setUserTyping] = useState<string>('');
   const onceRef = useRef(false);
@@ -47,11 +47,11 @@ export default function Home() {
 
     socket?.on("connect", () => {
       console.log("Connected to socket server");
-      setName(`anon-${socket.id}`);
+      setUser(`anon-${socket.id}`);
       setConnected(true);
       console.log("joining room", currentRoom);
 
-      socket?.emit("join", currentRoom);
+      socket?.emit("join", socket.id);
 
       // Send auth token
       socket?.emit('auth', { token: '123' });
@@ -70,8 +70,8 @@ export default function Home() {
       setMessages((messages) => [...messages, msg]);
     });
 
-    socket?.on("typing", (user: string) => {
-      if (user === name) {
+    socket?.on("typing", (user_typing: string) => {
+      if (user_typing === user) {
         return;
       }
       console.log(name + " is typing");
