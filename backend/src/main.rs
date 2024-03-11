@@ -42,7 +42,7 @@ impl Room {
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Deserialize)]
 struct AuthEvent {
     token: String,
 }
@@ -58,7 +58,7 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
 
     let room = Room::new(1, String::from("this_room"));
 
-    socket.on("join", async move|socket: SocketRef| {
+    socket.on("join", async move |socket: SocketRef| {
         info!("Socket.IO joined: {:?}", socket.id);
         room.users.clone().lock().unwrap().push(socket.id.to_string());
         info!("Users in room: {:?}", room.users.clone().lock().unwrap());
