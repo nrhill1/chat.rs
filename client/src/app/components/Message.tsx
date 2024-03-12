@@ -1,9 +1,10 @@
 import React from 'react'
 
-export default function Message({text}: {text: string}) {
+export default function Message({text, user}: {text: string, user: string}) {
   return (
-    <div className="rounded border-black min-w-2 min-h-2 mb-1">
+    <div className="rounded">
       <p>{text}</p>
+      <p>{user}</p>
     </div>
   )
 }

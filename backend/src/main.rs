@@ -50,22 +50,38 @@ struct AuthEvent {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Message {
-    message: String,
+struct TypingEvent {
     user: String,
+    room: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Message {
+    text: String,
+    user: String,
+    room: String,
 }
 
 fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
 
-    let room = Room::new(1, String::from("this_room"));
+    let room = Room::new(1, String::from("general"));
 
-    socket.on("join", async move |socket: SocketRef| {
-        info!("Socket.IO joined: {:?}", socket.id);
-        room.users.clone().lock().unwrap().push(socket.id.to_string());
-        info!("Users in room: {:?}", room.users.clone().lock().unwrap());
-        socket.emit("joined", "Joined").ok();
-    });
+    socket.on(
+        "join",
+        async move |socket: SocketRef, Data::<String>(room_name)| {
+            info!("Socket.IO joined: {:?} {:?}", socket.id, room_name);
+            let _ = socket.leave_all();
+            let _ = socket.join(room_name.clone());
+            room.users
+                .clone()
+                .lock()
+                .unwrap()
+                .push(socket.id.to_string());
+            info!("Users in room: {:?}", room.users.clone().lock().unwrap());
+            socket.within(room.name).emit("joined", socket.id).ok();
+        },
+    );
 
     socket.on("clear", |socket: SocketRef| {
         info!("Socket.IO cleared: {:?}", socket.id);
@@ -77,9 +93,19 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         socket.emit("authed", data.token).ok();
     });
 
-    socket.on("typing", |socket: SocketRef, Data::<String>(user)| {
-        info!("Socket.IO typing: {:?}", user);
-        socket.emit("typing", user).ok();
+    socket.on("typing", |socket: SocketRef, Data::<TypingEvent>(data)| {
+        info!("Socket.IO typing: {:?}", data.user);
+        socket.within(data.room).emit("typing", data.user).ok();
+    });
+
+    socket.on("message", |socket: SocketRef, Data::<Message>(msg)| {
+        info!("Received event: {:?}", msg);
+        let response = Message {
+            text: msg.text.clone(),
+            user: msg.user.clone(),
+            room: msg.room.clone(),
+        };
+        socket.within(msg.room).emit("message-back", response).ok();
     });
 
     socket.on_disconnect(|socket: SocketRef, reason: DisconnectReason| async move {
@@ -89,11 +115,6 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
             socket.ns(),
             reason
         );
-    });
-
-    socket.on("message", |socket: SocketRef, Data::<Message>(msg)| {
-        info!("Received event: {:?}", msg);
-        socket.emit("message-back", msg).ok();
     });
 }
 
@@ -118,7 +139,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Starting server");
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
