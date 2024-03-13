@@ -79,7 +79,7 @@ export default function Home() {
       console.log("joined room", user);
     });
 
-    // Handle messages
+    // Handle message back
     socket?.on("message-back", (msg: IMessage) => {
       console.log("Message received", { msg });
       setMessages((messages) => [...messages, msg]);
