@@ -77,6 +77,9 @@ export default function Home() {
     // Handle new user joining
     socket.on("joined", (user: string) => {
       console.log("joined room", user);
+      socket.on("messages", (msgs: IMessage[]) => {
+        setMessages(msgs);
+      });
     });
 
     // Handle message back
@@ -88,16 +91,17 @@ export default function Home() {
     // Handle typing event from other users
     socket?.on("typing", (user_typing: string) => {
       console.log(user + " is typing");
-      if (user_typing === user || user_typing === 'anon') {
+      if (user_typing !== user) {
+        typeRef.current = true;
+        setUserTyping(user_typing);
+        setTimeout(() => {
+          typeRef.current = false;
+          setUserTyping('');
+        }, 2000);
+      } else {
         typeRef.current = false;
         return;
       }
-      typeRef.current = true;
-      setUserTyping(user_typing);
-      setTimeout(() => {
-        typeRef.current = false;
-        setUserTyping('');
-      }, 2000);
     });
   }, [socket]);
 
@@ -109,6 +113,8 @@ export default function Home() {
         {renderMessages(messages)}
       </div>
       { typeRef.current &&
+        userTyping !== '' &&
+        userTyping !== user &&
         <p className="text-center">{userTyping} is typing...</p>
       }
       <input
