@@ -4,3 +4,7 @@ export interface IMessage {
     user: string;
     room: string;
 }
+
+export interface IMessages {
+    messages: IMessage[];
+}

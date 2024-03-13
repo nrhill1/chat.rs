@@ -14,7 +14,7 @@ use axum::{http::Method, routing::get};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use socketioxide::{
-    extract::{Data, SocketRef},
+    extract::{Data, SocketRef, State},
     socket::DisconnectReason,
     SocketIo,
 };
@@ -22,24 +22,24 @@ use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
-struct AppState {
-    rooms: VecDeque<Room>,
-}
 
+#[derive(Debug, Clone)]
 struct Room {
     id: u32,
     name: String,
-    users: Arc<Mutex<Vec<String>>>,
-    messages: Arc<Mutex<VecDeque<Message>>>,
+    users: Vec<String>,
+    messages: Vec<Message>,
 }
+
+type RoomState = Arc<Mutex<Room>>;
 
 impl Room {
     fn new(id: u32, name: String) -> Self {
         Self {
             id,
             name,
-            users: Arc::new(Mutex::new(Vec::new())),
-            messages: Arc::new(Mutex::new(VecDeque::new())),
+            users: Vec::new(),
+            messages: Vec::new(),
         }
     }
 }
@@ -55,31 +55,39 @@ struct TypingEvent {
     room: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 struct Message {
     text: String,
     user: String,
     room: String,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct Messages {
+    messages: Vec<Message>,
+}
+
+
 fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
 
-    let room = Room::new(1, String::from("general"));
-
     socket.on(
         "join",
-        async move |socket: SocketRef, Data::<String>(room_name)| {
+        async move |socket: SocketRef, Data::<String>(room_name), state: State<RoomState> | {
             info!("Socket.IO joined: {:?} {:?}", socket.id, room_name);
             let _ = socket.leave_all();
             let _ = socket.join(room_name.clone());
-            room.users
+            state
                 .clone()
                 .lock()
                 .unwrap()
+                .users
                 .push(socket.id.to_string());
-            info!("Users in room: {:?}", room.users.clone().lock().unwrap());
-            socket.within(room.name).emit("joined", socket.id).ok();
+            info!("Room users: {:?}", state.lock().unwrap().users);
+            socket.within(room_name.clone()).emit("joined", socket.id).ok();
+            let prev_msgs = state.clone().lock().unwrap().messages.clone();
+            info!("Previous messages: {:?}", prev_msgs);
+            socket.emit("messages", Messages { messages: prev_msgs }).ok();
         },
     );
 
@@ -98,13 +106,15 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         socket.within(data.room).emit("typing", data.user).ok();
     });
 
-    socket.on("message", |socket: SocketRef, Data::<Message>(msg)| {
+    socket.on("message",
+    async move |socket: SocketRef, Data::<Message>(msg), state: State<RoomState>| {
         info!("Received event: {:?}", msg);
         let response = Message {
             text: msg.text.clone(),
             user: msg.user.clone(),
             room: msg.room.clone(),
         };
+        state.lock().unwrap().messages.push(response.clone());
         socket.within(msg.room).emit("message-back", response).ok();
     });
 
@@ -122,7 +132,13 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::subscriber::set_global_default(FmtSubscriber::default())?;
 
-    let (layer, io) = SocketIo::new_layer();
+
+    let room_name: String = "general".to_string();
+    let room = Room::new(1, String::from("general"));
+    let room_state = Arc::new(Mutex::new(room));
+
+    let (layer, io) = SocketIo::builder().with_state(room_state).build_layer();
+
 
     let cors = CorsLayer::new()
         // allow `GET` and `POST` when accessing the resource
@@ -133,7 +149,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     io.ns("/", on_connect);
 
     let app = axum::Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
         .layer(layer)
         .layer(cors);
 

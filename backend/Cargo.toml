@@ -22,7 +22,7 @@ tower = "0.4"
 tower-http = { version = "0.5", features = ["fs", "cors"] }
 tower-cookies = "0.10"
 # -- Sockets
-socketioxide = "0.10.2"
+socketioxide = {version = "0.11.0", features = ["state"]}
 # -- Time
 chrono = { version = "0.4", features = ["serde"] }
 # -- Tracing

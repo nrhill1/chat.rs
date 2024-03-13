@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import Message from "./components/Message";
-import {IMessage} from "../types";
+import { IMessage, IMessages } from "../types";
 
 
 export default function Home() {
@@ -77,8 +77,11 @@ export default function Home() {
     // Handle new user joining
     socket.on("joined", (user: string) => {
       console.log("joined room", user);
-      socket.on("messages", (msgs: IMessage[]) => {
-        setMessages(msgs);
+      socket.on("messages", (msgs: IMessages) => {
+        let messages = msgs.messages;
+        console.log("Messages received", messages);
+        setMessages(messages);
+        console.log(messages);
       });
     });
 
