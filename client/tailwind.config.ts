@@ -7,9 +7,15 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      transitionProperty: {
+        'height': 'height'
+      },
+    },
   },
-  plugins: [],
+  plugins: [
+		require("tailwindcss-animate"),
+	],
 };
 
 export default config;

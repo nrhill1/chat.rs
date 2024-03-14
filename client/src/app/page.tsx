@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import Message from "./components/Message";
 import { IMessage, IMessages } from "../types";
+import { Transition } from '@tailwindui/react';
 
 
 export default function Home() {
@@ -60,7 +61,6 @@ export default function Home() {
       setUser(`anon-${socket.id}`);
       setConnected(true);
       console.log("joining room", currentRoom);
-
       socket?.emit("join", currentRoom);
 
       // Send auth token
@@ -110,9 +110,9 @@ export default function Home() {
 
   return (
     <div className="bg-white grid container p-6 mx-auto rounded-xl max-w-120 shadow-lg items-center justify-center space-x-4 mt-2 ml-2 mr-2s">
-      <p className="text-center">Hello anon-{socketId}!</p>
+      <p className="text-center mb-4">Hello anon-{socketId}!</p>
 
-      <div className="bg-gray-300 container py-2 px-4 max-w-120 rounded-sm text-center mb-2">
+      <div className="bg-gray-300 container py-2 px-4 max-w-120 rounded-sm text-center mb-2 transition">
         {renderMessages(messages)}
       </div>
       { typeRef.current &&
@@ -121,7 +121,7 @@ export default function Home() {
         <p className="text-center">{userTyping} is typing...</p>
       }
       <input
-        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded mb-2"
+        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded mt-4 mb-4"
         onChange={(e) =>{setMessage(e.target.value)}}
         onFocus = {(e) => {handleTyping()}}
         placeholder="Type a message"
