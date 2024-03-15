@@ -109,28 +109,26 @@ export default function Home() {
   }, [socket]);
 
   return (
-    <div className="bg-white grid container p-6 mx-auto rounded-xl max-w-420 shadow-lg items-center justify-center space-x-4 mt-2 ml-2 mr-2s">
+    <div className="bg-white flex container p-6 mx-auto rounded-xl max-w-96 shadow-lg flex-col justify-center align-center space-x-4 mt-2 ml-2 mr-2s">
       <p className="text-center mb-4">Hello anon-{socketId}!</p>
-
-      <div className="bg-gray-300 container py-2 px-4 min-w-420 min-h-10 rounded-sm text-center mb-2">
-        {renderMessages(messages)}
-      </div>
-      { typeRef.current &&
-        userTyping !== '' &&
-        userTyping !== user &&
-        <p className="text-center">{userTyping} is typing...</p>
-      }
-      <div className="flex flex-col justify-center align-center ">
-        <input
-          className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded mt-4 mb-2"
-          onChange={(e) =>{setMessage(e.target.value)}}
-          onFocus = {(e) => {handleTyping()}}
-          placeholder="Type a message"
-        >
-
-        </input>
+    <div className="bg-gray-300 container py-2 px-4 min-w-72 min-h-96 rounded-sm text-center mb-2">
+      {renderMessages(messages)}
+    </div>
+    { typeRef.current &&
+      userTyping !== '' &&
+      userTyping !== user &&
+      <p className="text-center">{userTyping} is typing...</p>
+    }
+      <input
+        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-white font-bold py-4 px-4 min-w-24 max-w-48 justify-center align-center rounded mt-4 mb-4"
+        onChange={(e) =>{setMessage(e.target.value)}}
+        onFocus = {(e) => {handleTyping()}}
+        placeholder="Type a message"
+      >
+      </input>
+      <div className="flex flex-row justify-center align-center">
         <button
-          className="bg-pink-500 hover:bg-rose-700 transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded mb-4"
+          className="bg-pink-500 hover:bg-rose-700 transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded mx-2"
           onClick={handleMessage}
         >
           Send
