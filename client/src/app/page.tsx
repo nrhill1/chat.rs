@@ -138,7 +138,7 @@ export default function Home() {
           Send
         </button>
         <button
-          className="bg-pink-500 hover:bg-rose-700 transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded"
+          className="bg-pink-500 hover:bg-rose-700 transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded mx-2"
           onClick={() => {
             socket?.emit("clear");
             setMessage(null)}}
