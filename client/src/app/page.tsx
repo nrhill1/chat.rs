@@ -112,9 +112,9 @@ export default function Home() {
   }, [socket]);
 
   return (
-    <div className="bg-white container p-6 mx-auto rounded-xl max-w-96 shadow-lg flex flex-col align-center space-x-4 m-4">
+    <div className="bg-white container p-6 mx-auto rounded-xl max-w-96 shadow-lg flex flex-col justify-center m-4">
       <p className="text-center mb-4">Hello anon-{socketId}!</p>
-      <div className="bg-gray-300 container py-2 px-4 min-w-72 min-h-96 rounded-sm text-center mb-2">
+      <div className="bg-gray-300 container py-2 px-4 min-w-72 min-h-96 rounded-md text-center mb-2">
         {renderMessages(messages)}
       </div>
       { typeRef.current &&
@@ -123,9 +123,9 @@ export default function Home() {
         <p className="text-center">{userTyping} is typing...</p>
       }
       <input
-        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-white font-bold text-center py-4 px-4 min-w-24 max-w-48 rounded mt-4 mb-4"
+        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-rose-700 font-bold py-2 px-4 min-w-36 max-w-52 self-center text-center rounded mt-4 mb-4"
         onChange={(e) =>{setMessage(e.target.value)}}
-        onFocus = {(e) => {handleTyping()}}
+        onFocus = {() => {handleTyping()}}
         value={message ? message : ""}
         placeholder="Type a message"
       >
