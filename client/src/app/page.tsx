@@ -37,6 +37,9 @@ export default function Home() {
   }
 
   function handleMessage() {
+    if (!message) {
+      return;
+    }
     socket?.emit("message", message, user, currentRoom);
   }
 
@@ -109,20 +112,21 @@ export default function Home() {
   }, [socket]);
 
   return (
-    <div className="bg-white flex container p-6 mx-auto rounded-xl max-w-96 shadow-lg flex-col justify-center align-center space-x-4 mt-2 ml-2 mr-2s">
+    <div className="bg-white container p-6 mx-auto rounded-xl max-w-96 shadow-lg flex flex-col align-center space-x-4 m-4">
       <p className="text-center mb-4">Hello anon-{socketId}!</p>
-    <div className="bg-gray-300 container py-2 px-4 min-w-72 min-h-96 rounded-sm text-center mb-2">
-      {renderMessages(messages)}
-    </div>
-    { typeRef.current &&
-      userTyping !== '' &&
-      userTyping !== user &&
-      <p className="text-center">{userTyping} is typing...</p>
-    }
+      <div className="bg-gray-300 container py-2 px-4 min-w-72 min-h-96 rounded-sm text-center mb-2">
+        {renderMessages(messages)}
+      </div>
+      { typeRef.current &&
+        userTyping !== '' &&
+        userTyping !== user &&
+        <p className="text-center">{userTyping} is typing...</p>
+      }
       <input
-        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-white font-bold py-4 px-4 min-w-24 max-w-48 justify-center align-center rounded mt-4 mb-4"
+        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-white font-bold text-center py-4 px-4 min-w-24 max-w-48 rounded mt-4 mb-4"
         onChange={(e) =>{setMessage(e.target.value)}}
         onFocus = {(e) => {handleTyping()}}
+        value={message ? message : ""}
         placeholder="Type a message"
       >
       </input>
@@ -137,9 +141,9 @@ export default function Home() {
           className="bg-pink-500 hover:bg-rose-700 transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110 text-white font-bold py-2 px-4 min-w-24 max-w-48 text-center rounded"
           onClick={() => {
             socket?.emit("clear");
-            setMessages([])}}
+            setMessage(null)}}
         >
-            Clear
+          Clear
         </button>
       </div>
     </div>

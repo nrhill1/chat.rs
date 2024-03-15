@@ -91,11 +91,6 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         },
     );
 
-    socket.on("clear", |socket: SocketRef| {
-        info!("Socket.IO cleared: {:?}", socket.id);
-        socket.emit("cleared", "Cleared").ok();
-    });
-
     socket.on("auth", |socket: SocketRef, Data::<AuthEvent>(data)| {
         info!("Socket.IO auth: {:?}", data);
         socket.emit("authed", data.token).ok();
