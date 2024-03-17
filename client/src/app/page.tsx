@@ -32,12 +32,14 @@ export default function Home() {
     );
   }
 
+  const onlyWhiteSpace = (string:string): boolean => /^\\s*$/.test(string);
+
   function handleTyping() {
     socket?.emit("typing", user, currentRoom);
   }
 
   function handleMessage() {
-    if (!message) {
+    if (!message || onlyWhiteSpace(message)) {
       return;
     }
     socket?.emit("message", message, user, currentRoom);
