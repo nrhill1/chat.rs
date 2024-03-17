@@ -123,7 +123,7 @@ export default function Home() {
         <p className="text-center">{userTyping} is typing...</p>
       }
       <input
-        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-rose-700 font-bold py-2 px-4 min-w-36 max-w-52 self-center text-center rounded mt-4 mb-4"
+        className="bg-pink-200 hover:border-rose-700s ease-in-out duration-300 placeholder-pink-600 md:focus:border-white md:placeholder-opacity-50 text-rose-700 font-bold py-2 px-4 min-w-36 max-w-52 self-center text-center rounded mt-4 mb-2"
         onChange={(e) =>{setMessage(e.target.value)}}
         onFocus = {() => {handleTyping()}}
         value={message ? message : ""}
