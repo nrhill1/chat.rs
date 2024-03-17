@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import Message from "./components/Message";
-import { IMessage, IMessages } from "../types";
+import Message from './components/Message';
+import Sidebar from './components/Sidebar';
+import { IMessage, IMessages } from '../types';
 import { Transition } from '@tailwindui/react';
 
 
@@ -14,13 +15,14 @@ export default function Home() {
   const [socketId, setSocketId] = useState<string | undefined>(undefined);
   const [currentRoom, setCurrentRoom] = useState<string>("general");
   const [connected, setConnected] = useState<boolean>(false);
-  const [user, setUser] = useState<string>('anon');
+  const [user, setUser] = useState<string | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [userTyping, setUserTyping] = useState<string>('');
 
   const onceRef = useRef(false);
   const typeRef = useRef(false);
 
+  const rooms = ['general', 'random', 'rust'];
 
   function renderMessages(messages: IMessage[]) {
     return (
@@ -35,19 +37,19 @@ export default function Home() {
   const onlyWhiteSpace = (string:string): boolean => /^\\s*$/.test(string);
 
   function handleTyping() {
-    socket?.emit("typing", user, currentRoom);
+    socket?.emit('typing', user, currentRoom);
   }
 
   function handleMessage() {
     if (!message || onlyWhiteSpace(message)) {
       return;
     }
-    socket?.emit("message", message, user, currentRoom);
+    socket?.emit('message', message, user, currentRoom);
   }
 
   useEffect(() => {
     setMessages([]);
-    socket?.emit("join", currentRoom);
+    socket?.emit('join', currentRoom);
   }, [currentRoom]);
 
 
@@ -58,15 +60,15 @@ export default function Home() {
 
     onceRef.current = true;
 
-    const socket = io("ws://0.0.0.0:5000");
+    const socket = io('ws://0.0.0.0:5000');
     setSocket(socket);
 
-    socket?.on("connect", () => {
-      console.log("Connected to socket server");
+    socket?.on('connect', () => {
+      console.log('Connected to socket server');
       setUser(`anon-${socket.id}`);
       setConnected(true);
-      console.log("joining room", currentRoom);
-      socket?.emit("join", currentRoom);
+      console.log('joining room', currentRoom);
+      socket?.emit('join', currentRoom);
 
       // Send auth token
       socket?.emit('auth', { token: '123' });
@@ -80,25 +82,25 @@ export default function Home() {
     });
 
     // Handle new user joining
-    socket.on("joined", (user: string) => {
-      console.log("joined room", user);
-      socket.on("messages", (msgs: IMessages) => {
+    socket.on('joined', (user: string) => {
+      console.log('joined room', user);
+      socket.on('messages', (msgs: IMessages) => {
         let messages = msgs.messages;
-        console.log("Messages received", messages);
+        console.log('Messages received', messages);
         setMessages(messages);
         console.log(messages);
       });
     });
 
     // Handle message back
-    socket?.on("message-back", (msg: IMessage) => {
-      console.log("Message received", { msg });
+    socket?.on('message-back', (msg: IMessage) => {
+      console.log('Message received', { msg });
       setMessages((messages) => [...messages, msg]);
     });
 
     // Handle typing event from other users
-    socket?.on("typing", (user_typing: string) => {
-      console.log(user + " is typing");
+    socket?.on('typing', (user_typing: string) => {
+      console.log(user + ' is typing');
       if (user_typing !== user) {
         typeRef.current = true;
         setUserTyping(user_typing);
@@ -114,8 +116,15 @@ export default function Home() {
   }, [socket]);
 
   return (
+    <div className="flex flex-row justify-center align-center">
+      <Sidebar
+        user={user}
+        currentRoom={currentRoom}
+        rooms={rooms}
+        setCurrentRoom={setCurrentRoom}
+        socket={socket}
+      />
     <div className="bg-white container p-6 mx-auto rounded-xl max-w-96 shadow-lg flex flex-col justify-center m-4">
-      <p className="text-center mb-4">Hello anon-{socketId}!</p>
       <div className="bg-gray-300 container py-2 px-4 min-w-72 min-h-96 rounded-md text-center mb-2">
         {renderMessages(messages)}
       </div>
@@ -147,6 +156,7 @@ export default function Home() {
         >
           Clear
         </button>
+      </div>
       </div>
     </div>
   )
