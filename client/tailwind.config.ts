@@ -14,6 +14,7 @@ const config: Config = {
     },
     fontFamily: {
       'nunito': ['nunito', 'sans-serif'],
+      'borel-regular': ['borel-regular', 'cursive'],
     },
   },
   plugins: [

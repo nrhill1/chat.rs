@@ -2,8 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Borel&family=Kodchasan:wght@400;600;700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
 html {
     height: 100%;
     background-color: #9AD1D4;
+}
+
+
+.font-nunito {
+    font-family: nunito, sans-serif;
+}
+
+.font-borel {
+    font-family: "Borel", cursive;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.kodchasan-regular {
+    font-family: "Kodchasan", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.kodchasan-semibold {
+    font-family: "Kodchasan", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+}
+
+.kodchasan-bold {
+    font-family: "Kodchasan", sans-serif;
+    font-weight: 700;
+    font-style: normal;
 }

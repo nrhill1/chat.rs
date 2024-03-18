@@ -12,11 +12,13 @@ interface SidebarProps {
 function Sidebar({ user, rooms, setCurrentRoom, socket }: SidebarProps) {
   return (
     <div>
-      <div className="flex flex-col w-full max-w-[320px] min-w-10 h-20 leading-1.5 p-4 border-gray-200 bg-white rounded-xl animate-delay-200 mt-6 mb-6 ml-2">
+      <div className="flex flex-col w-full max-w-[320px] min-w-10 min-h-20 h-24 leading-1.5 p-4 border-gray-200 bg-white rounded-xl animate-delay-200 mt-6 mb-2 ml-2">
+        <p className="font-borel text-5xl text-gray-700 font-bold text-center mb-2">Chat_rs</p>
+      </div>
+      <div className="flex flex-col w-full max-w-[320px] min-w-10 min-h-20 h-24 leading-1.5 p-4 border-gray-200 bg-white rounded-xl animate-delay-200 mt-6 mb-6 ml-2">
         { user
           ? <>
-              <p className="font-nunito text-gray-700 font-bold text-center">Chat_rs</p>
-              <p className="text-gray-700 font-bold text-center">{user}</p>
+              <p className="text-gray-700 font-bold text-center">Welcome, {user}</p>
             </>
           : <p className="text-gray-700 animate-bounce text-center">Loading...</p>
         }
