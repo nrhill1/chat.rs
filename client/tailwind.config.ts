@@ -12,6 +12,9 @@ const config: Config = {
         'height': 'height'
       },
     },
+    fontFamily: {
+      'nunito': ['nunito', 'sans-serif'],
+    },
   },
   plugins: [
 		require("tailwindcss-animated"),
