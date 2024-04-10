@@ -11,6 +11,7 @@ use std::{
 };
 
 use axum::{http::Method, routing::get};
+use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use socketioxide::{
@@ -24,12 +25,12 @@ use tracing_subscriber::FmtSubscriber;
 
 #[derive(Debug, Clone)]
 struct App {
-    rooms: HashMap<String, Room>,
+    rooms: DashMap<String, Room>,
 }
 
 impl App {
     pub fn with_names(names: Vec<&str>) -> Self {
-        let mut rooms: HashMap<String, Room> = HashMap::new();
+        let rooms: DashMap<String, Room> = DashMap::new();
         for (i, name) in names.into_iter().enumerate() {
             let room = Room::new(i as u32, name.to_string());
             rooms.insert(name.to_string(), room);
@@ -39,7 +40,7 @@ impl App {
     }
 }
 
-type AppState = Arc<Mutex<App>>;
+type AppState = Arc<App>;
 
 #[derive(Debug, Clone)]
 struct Room {
@@ -124,8 +125,6 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
             let _ = socket.join(room_name.clone());
             state
                 .clone()
-                .lock()
-                .unwrap()
                 .rooms
                 .get_mut(&room_name)
                 .unwrap()
@@ -133,7 +132,7 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .push(socket.id.to_string());
             info!(
                 "Room users: {:?}",
-                state.lock().unwrap().rooms.get(&room_name).unwrap().users
+                state.rooms.get(&room_name).unwrap().users
             );
             socket
                 .within(room_name.clone())
@@ -141,11 +140,8 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .ok();
             let prev_msgs = state
                 .clone()
-                .lock()
-                .unwrap()
                 .rooms
                 .get(&room_name)
-                .clone()
                 .unwrap()
                 .messages
                 .clone();
@@ -181,8 +177,6 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 room: msg.room.clone(),
             };
             state
-                .lock()
-                .unwrap()
                 .rooms
                 .get_mut(&msg.room)
                 .unwrap()
