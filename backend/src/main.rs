@@ -30,7 +30,7 @@ struct App {
 impl App {
     pub fn with_names(names: Vec<&str>) -> Self {
         let mut rooms: HashMap<String, Room> = HashMap::new();
-        for (i, name) in names.iter().enumerate() {
+        for (i, name) in names.into_iter().enumerate() {
             let room = Room::new(i as u32, name.to_string());
             rooms.insert(name.to_string(), room);
         }
