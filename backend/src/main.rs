@@ -27,6 +27,18 @@ struct App {
     rooms: HashMap<String, Room>,
 }
 
+impl App {
+    pub fn with_names(names: Vec<&str>) -> Self {
+        let mut rooms: HashMap<String, Room> = HashMap::new();
+        for (i, name) in names.iter().enumerate() {
+            let room = Room::new(i as u32, name.to_string());
+            rooms.insert(name.to_string(), room);
+        }
+
+        App { rooms }
+    }
+}
+
 type AppState = Arc<Mutex<App>>;
 
 #[derive(Debug, Clone)]
@@ -76,13 +88,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::subscriber::set_global_default(FmtSubscriber::default())?;
 
     let room_names = vec!["general", "random", "rust"];
-    let mut app = App {
-        rooms: HashMap::new(),
-    };
-    for (i, name) in room_names.iter().enumerate() {
-        let room = Room::new(i as u32, name.to_string());
-        app.rooms.insert(name.to_string(), room);
-    }
+
+    let app = App::with_names(room_names);
 
     let app_state = Arc::new(Mutex::new(app));
 
