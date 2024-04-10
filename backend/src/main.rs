@@ -92,7 +92,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = App::with_names(room_names);
 
-    let app_state = Arc::new(Mutex::new(app));
+    let app_state: AppState = Arc::new(app);
 
     let (layer, io) = SocketIo::builder().with_state(app_state).build_layer();
 
