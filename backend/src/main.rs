@@ -88,13 +88,14 @@ struct Messages {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::subscriber::set_global_default(FmtSubscriber::default())?;
 
-    let room_names = vec!["general", "random", "rust"];
+    let room_names: Vec<&'static str> = vec!["general", "random", "rust"];
 
     let app = App::with_names(room_names);
-
     let app_state: AppState = Arc::new(app);
 
-    let (layer, io) = SocketIo::builder().with_state(app_state).build_layer();
+    let (socket_layer, io) = SocketIo::builder()
+        .with_state(app_state)
+        .build_layer();
 
     let cors = CorsLayer::new()
         // allow `GET` and `POST` when accessing the resource
@@ -104,11 +105,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     io.ns("/", on_connect);
 
-    let app = axum::Router::new().layer(layer).layer(cors);
+    let app = axum::Router::new()
+        .layer(socket_layer)
+        .layer(cors);
 
     info!("Starting server");
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
+
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
@@ -123,6 +127,7 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
             info!("Socket.IO joined: {:?} {:?}", socket.id, room_name);
             let _ = socket.leave_all();
             let _ = socket.join(room_name.clone());
+
             state
                 .clone()
                 .rooms
@@ -130,14 +135,17 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .unwrap()
                 .users
                 .push(socket.id.to_string());
+
             info!(
                 "Room users: {:?}",
                 state.rooms.get(&room_name).unwrap().users
             );
+
             socket
                 .within(room_name.clone())
                 .emit("joined", socket.id)
                 .ok();
+
             let prev_msgs = state
                 .clone()
                 .rooms
@@ -145,7 +153,9 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .unwrap()
                 .messages
                 .clone();
+
             info!("Previous messages: {:?}", prev_msgs);
+
             socket
                 .emit(
                     "messages",
@@ -171,11 +181,13 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
         "message",
         async move |socket: SocketRef, Data::<Message>(msg), state: State<AppState>| {
             info!("Received event: {:?}", msg);
+
             let response = Message {
                 text: msg.text.clone(),
                 user: msg.user.clone(),
                 room: msg.room.clone(),
             };
+
             state
                 .rooms
                 .get_mut(&msg.room)
