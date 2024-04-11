@@ -29,7 +29,7 @@ struct App {
 }
 
 impl App {
-    pub fn with_names(names: Vec<&str>) -> Self {
+    pub fn with_names(names: Vec<&'static str>) -> Self {
         let rooms: DashMap<String, Room> = DashMap::new();
         for (i, name) in names.into_iter().enumerate() {
             let room = Room::new(i as u32, name.to_string());
