@@ -120,7 +120,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
-
+    // Join event
     socket.on(
         "join",
         async move |socket: SocketRef, Data::<String>(room_name), state: State<AppState>| {
@@ -166,17 +166,17 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .ok();
         },
     );
-
+    // Authentication event
     socket.on("auth", |socket: SocketRef, Data::<AuthEvent>(data)| {
         info!("Socket.IO auth: {:?}", data);
         socket.emit("authed", data.token).ok();
     });
-
+    // Typing event
     socket.on("typing", |socket: SocketRef, Data::<TypingEvent>(data)| {
         info!("Socket.IO typing: {:?}", data.user);
         socket.within(data.room).emit("typing", data.user).ok();
     });
-
+    // Message event
     socket.on(
         "message",
         async move |socket: SocketRef, Data::<Message>(msg), state: State<AppState>| {
@@ -194,6 +194,7 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .unwrap()
                 .messages
                 .push(response.clone());
+
             socket.within(msg.room).emit("message-back", response).ok();
         },
     );
