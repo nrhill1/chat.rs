@@ -1,13 +1,9 @@
 //* main.rs
 
 #![feature(async_closure)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
 
 use std::{
-    collections::{HashMap, VecDeque},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
 use axum::{http::Method, routing::get};
