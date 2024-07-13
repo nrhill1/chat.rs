@@ -28,7 +28,7 @@ impl App {
     pub fn with_names(names: Vec<&'static str>) -> Self {
         let rooms: DashMap<String, Room> = DashMap::new();
         for (i, name) in names.into_iter().enumerate() {
-            let room = Room::new(i as u32, name.to_string());
+            let room = Room::new();
             rooms.insert(name.to_string(), room);
         }
 
@@ -45,7 +45,7 @@ struct Room {
 }
 
 impl Room {
-    fn new(id: u32, name: String) -> Self {
+    fn new() -> Self {
         Self {
             users: Vec::new(),
             messages: Vec::new(),
