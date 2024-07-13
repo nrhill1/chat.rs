@@ -175,7 +175,8 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     // Message event
     socket.on(
         "message",
-        async move |socket: SocketRef, Data::<Message>(msg), state: State<AppState>| {
+        async move |socket: SocketRef, Data::<Message>(msg), state: State<AppState>|
+        {
             info!("Received event: {:?}", msg);
 
             let response = Message {
@@ -192,15 +193,18 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .push(response.clone());
 
             socket.within(msg.room).emit("message-back", response).ok();
-        },
+        }
     );
 
-    socket.on_disconnect(|socket: SocketRef, reason: DisconnectReason| async move {
-        info!(
-            "Socket {} on ns {} disconnected, reason: {:?}",
-            socket.id,
-            socket.ns(),
-            reason
-        );
-    });
+    socket.on_disconnect(
+        async move |socket: SocketRef, reason: DisconnectReason|
+        {
+            info!(
+                "Socket {} on ns {} disconnected, reason: {:?}",
+                socket.id,
+                socket.ns(),
+                reason
+            );
+        }
+    );
 }
