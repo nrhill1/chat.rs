@@ -115,7 +115,8 @@ fn on_connect(socket: SocketRef, Data(_data): Data<Value>) {
     // Join event
     socket.on(
         "join",
-        async move |socket: SocketRef, Data::<String>(room_name), state: State<AppState>| {
+        async move |socket: SocketRef, Data::<String>(room_name), state: State<AppState>|
+        {
             info!("Socket.IO joined: {:?} {:?}", socket.id, room_name);
             let _ = socket.leave_all();
             let _ = socket.join(room_name.clone());
