@@ -6,7 +6,7 @@ use std::{
     sync::Arc,
 };
 
-use axum::{http::Method, routing::get};
+use axum::{http::Method};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -40,8 +40,6 @@ type AppState = Arc<App>;
 
 #[derive(Debug, Clone)]
 struct Room {
-    id: u32,
-    name: String,
     users: Vec<String>,
     messages: Vec<Message>,
 }
@@ -49,8 +47,6 @@ struct Room {
 impl Room {
     fn new(id: u32, name: String) -> Self {
         Self {
-            id,
-            name,
             users: Vec::new(),
             messages: Vec::new(),
         }
@@ -114,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
+fn on_connect(socket: SocketRef, Data(_data): Data<Value>) {
     info!("Socket.IO connected: {:?} {:?}", socket.ns(), socket.id);
     // Join event
     socket.on(
@@ -162,16 +158,19 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
                 .ok();
         },
     );
+
     // Authentication event
     socket.on("auth", |socket: SocketRef, Data::<AuthEvent>(data)| {
         info!("Socket.IO auth: {:?}", data);
         socket.emit("authed", data.token).ok();
     });
+
     // Typing event
     socket.on("typing", |socket: SocketRef, Data::<TypingEvent>(data)| {
         info!("Socket.IO typing: {:?}", data.user);
         socket.within(data.room).emit("typing", data.user).ok();
     });
+
     // Message event
     socket.on(
         "message",
