@@ -25,7 +25,7 @@ struct App {
 impl App {
     pub fn with_names(names: Vec<&'static str>) -> Self {
         let rooms: DashMap<String, Room> = DashMap::new();
-        for (i, name) in names.into_iter().enumerate() {
+        for name in names.into_iter() {
             let room = Room::new();
             rooms.insert(name.to_string(), room);
         }
