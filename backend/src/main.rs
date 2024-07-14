@@ -2,11 +2,9 @@
 
 #![feature(async_closure)]
 
-use std::{
-    sync::Arc,
-};
+use std::sync::Arc;
 
-use axum::{http::Method};
+use axum::http::Method;
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -85,9 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = App::with_names(room_names);
     let app_state: AppState = Arc::new(app);
 
-    let (socket_layer, io) = SocketIo::builder()
-        .with_state(app_state)
-        .build_layer();
+    let (socket_layer, io) = SocketIo::builder().with_state(app_state).build_layer();
 
     let cors = CorsLayer::new()
         // allow `GET` and `POST` when accessing the resource
@@ -97,9 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     io.ns("/", on_connect);
 
-    let app = axum::Router::new()
-        .layer(socket_layer)
-        .layer(cors);
+    let app = axum::Router::new().layer(socket_layer).layer(cors);
 
     info!("Starting server");
 
@@ -115,8 +109,7 @@ fn on_connect(socket: SocketRef, Data(_data): Data<Value>) {
     // Join event
     socket.on(
         "join",
-        async move |socket: SocketRef, Data::<String>(room_name), state: State<AppState>|
-        {
+        async move |socket: SocketRef, Data::<String>(room_name), state: State<AppState>| {
             info!("Socket.IO joined: {:?} {:?}", socket.id, room_name);
             let _ = socket.leave_all();
             let _ = socket.join(room_name.clone());
@@ -175,8 +168,7 @@ fn on_connect(socket: SocketRef, Data(_data): Data<Value>) {
     // Message event
     socket.on(
         "message",
-        async move |socket: SocketRef, Data::<Message>(msg), state: State<AppState>|
-        {
+        async move |socket: SocketRef, Data::<Message>(msg), state: State<AppState>| {
             info!("Received event: {:?}", msg);
 
             let response = Message {
@@ -193,18 +185,15 @@ fn on_connect(socket: SocketRef, Data(_data): Data<Value>) {
                 .push(response.clone());
 
             socket.within(msg.room).emit("message-back", response).ok();
-        }
+        },
     );
 
-    socket.on_disconnect(
-        async move |socket: SocketRef, reason: DisconnectReason|
-        {
-            info!(
-                "Socket {} on ns {} disconnected, reason: {:?}",
-                socket.id,
-                socket.ns(),
-                reason
-            );
-        }
-    );
+    socket.on_disconnect(async move |socket: SocketRef, reason: DisconnectReason| {
+        info!(
+            "Socket {} on ns {} disconnected, reason: {:?}",
+            socket.id,
+            socket.ns(),
+            reason
+        );
+    });
 }
